@@ -4,13 +4,12 @@ import com.example.service_1.dto.PersonRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-@Controller
+@RestController
 public class OrchestratorController {
     private static final Logger log = LoggerFactory.getLogger(OrchestratorController.class);
 
@@ -27,8 +26,8 @@ public class OrchestratorController {
     }
 
     @GetMapping("/health")
-    public String health() {
-        return "Up";
+    public ResponseEntity<String> health() {
+        return ResponseEntity.ok("Up");
     }
 
     @PostMapping("/combine")

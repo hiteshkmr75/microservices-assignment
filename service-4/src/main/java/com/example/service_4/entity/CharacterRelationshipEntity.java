@@ -1,15 +1,15 @@
 package com.example.service_4.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
-@Table(name = "character_relationship")
+@Table(name = "character")
 public class CharacterRelationshipEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "parent_id")
     private Long parentId;
     private String name;
     private String color;
