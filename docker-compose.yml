@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  service-2:
+    build: ./service-2
+    container_name: service-2
+    ports:
+      - "8082:8082"
+
+  service-3:
+    build: ./service-3
+    container_name: service-3
+    ports:
+      - "8083:8083"
+
+  service-1:
+    build: ./service-1
+    container_name: service-1
+    ports:
+      - "8081:8081"
+    environment:
+      - SERVICE2_URL=http://service-2:8082
+      - SERVICE3_URL=http://service-3:8083
+    depends_on:
+      - service-2
+      - service-3
+
+  db:
+    image: postgres:14-alpine
+    container_name: character-db
+    environment:
+      - POSTGRES_DB=characterdb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql  # optional seed
+
+  service-4:
+    build: ./service-4
+    container_name: service-4
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/characterdb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+    depends_on:
+      - db
