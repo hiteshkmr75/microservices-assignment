@@ -7,7 +7,6 @@ import jakarta.persistence.*;
 public class CharacterRelationshipEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "parent_id")
     private Long parentId;
@@ -17,7 +16,7 @@ public class CharacterRelationshipEntity {
     public CharacterRelationshipEntity() {
 
     }
-    public CharacterRelationshipEntity(long id, long parentId, String name, String color) {
+    public CharacterRelationshipEntity(long id, Long parentId, String name, String color) {
         this.id = id;
         this.parentId = parentId;
         this.name = name;
