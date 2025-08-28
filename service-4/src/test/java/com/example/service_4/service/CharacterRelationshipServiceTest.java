@@ -1,6 +1,7 @@
 package com.example.service_4.service;
 
 import com.example.service_4.entity.CharacterRelationshipEntity;
+import com.example.service_4.exception.CharacterNotFoundException;
 import com.example.service_4.repository.CharacterRelationshipRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -25,12 +26,10 @@ public class CharacterRelationshipServiceTest {
     private CharacterRelationshipService service;
 
     @Test
-    void nestedReturnsEmptyListWhenNoDataExists() {
+    void nestedThrowsExceptionWhenNoDataExists() {
         when(repo.findAll()).thenReturn(List.of());
 
-        List<Map<String, Object>> result = service.nested();
-
-        Assertions.assertTrue(result.isEmpty());
+        Assertions.assertThrows(CharacterNotFoundException.class, () -> service.nested());
     }
 
     @Test
@@ -44,11 +43,15 @@ public class CharacterRelationshipServiceTest {
         Assertions.assertEquals(1, result.size());
         Assertions.assertEquals("Parent", result.get(0).get("Name"));
         Assertions.assertEquals("Red", result.get(0).get("Color"));
-        Assertions.assertTrue(((List<?>) result.get(0).get("Sub Classes")).size() > 0);
+
+        List<?> subClasses = (List<?>) result.get(0).get("Sub Classes");
+        Assertions.assertNotNull(subClasses);
+        Assertions.assertEquals(1, subClasses.size());
+        Assertions.assertEquals("Child", ((Map<?, ?>) subClasses.get(0)).get("Name"));
     }
 
     @Test
-    void nestedHandlesEntitiesWithoutParentId() {
+    void nestedHandlesSingleRootWithoutChildren() {
         CharacterRelationshipEntity entity = new CharacterRelationshipEntity(1L, null, "Orphan", "Green");
         when(repo.findAll()).thenReturn(List.of(entity));
 
@@ -57,7 +60,7 @@ public class CharacterRelationshipServiceTest {
         Assertions.assertEquals(1, result.size());
         Assertions.assertEquals("Orphan", result.get(0).get("Name"));
         Assertions.assertEquals("Green", result.get(0).get("Color"));
-        Assertions.assertNull(result.get(0).get("Sub Classes"));
+        Assertions.assertFalse(result.get(0).containsKey("Sub Classes"));
     }
 
     @Test

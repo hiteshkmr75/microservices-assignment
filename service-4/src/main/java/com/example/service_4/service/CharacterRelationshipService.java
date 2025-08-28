@@ -1,6 +1,7 @@
 package com.example.service_4.service;
 
 import com.example.service_4.entity.CharacterRelationshipEntity;
+import com.example.service_4.exception.CharacterNotFoundException;
 import com.example.service_4.repository.CharacterRelationshipRepository;
 import org.springframework.stereotype.Service;
 
@@ -16,12 +17,25 @@ public class CharacterRelationshipService {
     public CharacterRelationshipService(CharacterRelationshipRepository repo) { this.repo = repo; }
 
     public List<Map<String,Object>> nested() {
-        List<CharacterRelationshipEntity> all = repo.findAll();
-        Map<Long, List<CharacterRelationshipEntity>> children = all.stream()
-                .collect(Collectors.groupingBy(n -> n.getParentId() == null ? 0L : n.getParentId()));
+        try {
+            List<CharacterRelationshipEntity> all = repo.findAll();
 
-        return children.getOrDefault(0L, List.of()).stream()
-                .map(r -> buildTree(r, children)).collect(Collectors.toList());
+            if (all.isEmpty()) {
+                throw new CharacterNotFoundException("No characters found in database");
+            }
+
+            Map<Long, List<CharacterRelationshipEntity>> children = all.stream()
+                    .collect(Collectors.groupingBy(n -> n.getParentId() == null ? 0L : n.getParentId()));
+
+            return children.getOrDefault(0L, List.of()).stream()
+                    .map(r -> buildTree(r, children))
+                    .collect(Collectors.toList());
+
+        } catch (CharacterNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Unexpected error occurred while building hierarchy", e);
+        }
     }
 
     private Map<String,Object> buildTree(CharacterRelationshipEntity node, Map<Long,List<CharacterRelationshipEntity>> children) {

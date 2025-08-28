@@ -1,9 +1,11 @@
 package com.example.service_1.controller;
 
+import com.example.service_1.annotation.LogMethodParam;
 import com.example.service_1.dto.PersonRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -31,10 +33,16 @@ public class OrchestratorController {
     }
 
     @PostMapping("/combine")
-//    @LogMethodParam
-    public String combine(@RequestBody @Validated PersonRequest dto) {
-        String hello = restTemplate.getForObject(service2 + "/hello", String.class);
-        String fullName = restTemplate.postForObject(service3 + "/fullname", dto, String.class);
-        return hello + " " + fullName;
+    @LogMethodParam
+    public ResponseEntity<String> combine(@RequestBody @Validated PersonRequest dto) {
+        try {
+            String hello = restTemplate.getForObject(service2 + "/hello", String.class);
+            String fullName = restTemplate.postForObject(service3 + "/fullname", dto, String.class);
+            return ResponseEntity.ok(hello + " " + fullName);
+        } catch (Exception ex) {
+            log.error("Error occurred while combining services: {}", ex.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred: " + ex.getMessage());
+        }
     }
 }

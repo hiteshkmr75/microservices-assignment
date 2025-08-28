@@ -1,6 +1,5 @@
 package com.example.service_1.controller;
 
-import com.example.service_1.controller.OrchestratorController;
 import com.example.service_1.dto.PersonRequest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -48,9 +47,10 @@ public class OrchestratorControllerTest {
         when(restTemplate.getForObject(service2 + "/hello", String.class)).thenReturn(service2Response);
         when(restTemplate.postForObject(eq(service3 + "/fullname"), eq(personRequest), eq(String.class))).thenReturn(service3Response);
 
-        String result = orchestratorController.combine(personRequest);
+        ResponseEntity<String> result = orchestratorController.combine(personRequest);
 
-        Assertions.assertEquals("Hello John Doe", result);
+        Assertions.assertEquals("Hello John Doe", result.getBody());
+        Assertions.assertEquals(HttpStatus.OK, result.getStatusCode());
     }
 
     @Test
@@ -59,7 +59,10 @@ public class OrchestratorControllerTest {
 
         when(restTemplate.getForObject(service2 + "/hello", String.class)).thenThrow(new RestClientException("Service 2 error"));
 
-        Assertions.assertThrows(RestClientException.class, () -> orchestratorController.combine(personRequest));
+        ResponseEntity<String> result = orchestratorController.combine(personRequest);
+
+        Assertions.assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+        Assertions.assertTrue(result.getBody().contains("Service 2 error"));
     }
 
     @Test
@@ -70,6 +73,9 @@ public class OrchestratorControllerTest {
         when(restTemplate.getForObject(service2 + "/hello", String.class)).thenReturn(service2Response);
         when(restTemplate.postForObject(eq(service3 + "/fullname"), eq(personRequest), eq(String.class))).thenThrow(new RestClientException("Service 3 error"));
 
-        Assertions.assertThrows(RestClientException.class, () -> orchestratorController.combine(personRequest));
+        ResponseEntity<String> result = orchestratorController.combine(personRequest);
+
+        Assertions.assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+        Assertions.assertTrue(result.getBody().contains("Service 3 error"));
     }
 }
